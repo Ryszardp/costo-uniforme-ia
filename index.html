@@ -188,6 +188,16 @@
     $("#btnStep").click(step);
     $("#btnCreate").click(createGraph);
     $("#btnGraphExample").click(function() {
+      // Nodo Inicio
+      srcNode = 0;
+      // Nodo objetivo
+      dstNode = 7;
+      // Crear nodo ejemplo
+      graph = createGraphExample();
+      algorithm = new Algorithm(graph, srcNode, dstNode);
+      // Eliminar Contenedor svg
+      svg.selectAll("*").remove();
+      drawGraph(graph);
     });
   </script>
 </body>

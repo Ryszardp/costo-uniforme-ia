@@ -10,5 +10,185 @@
     <button id="btnCreate">Crear Grafo</button>
     <button id="btnStep">Siguiente</button>
   </p>
+  <!-- d3.js para graficos -->
+  <!-- paquetes de jquery -->
+  <script src="jquery.min.js"></script>
+  <script src="d3.v3.min.js"></script>
+  <script src="min-heap.js"></script>
+
+  <!-- función para crear la estructura de los grafos -->
+  <script src="graph.js"></script>
+  <!-- Clase para iterar sobre los nodos -->
+  <script src="algorithm.js"></script>
+  <script>
+    var maxLength = 20;
+    var srcNode;
+    var dstNode;
+    var algorithm;
+
+    var width = 1280,
+      height = 600;
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    function step() {
+      var result = algorithm.step();
+      //console.debug(result);
+
+      svg.selectAll(".node.current").classed("current", false);
+      svg.selectAll(".link-text.active").classed("active", false);
+      svg.selectAll(".link-line.active").classed("active", false);
+
+      svg.selectAll(".node")
+        .filter(function(d) { return d.name in algorithm.A })
+        .classed("A", true)
+        .classed("B", false);
+
+      if (result) {
+        var shortest = algorithm.shortestPath();
+        svg.selectAll(".node")
+          .filter(function(d) {return shortest.nodes.indexOf(d.name) != -1;})
+          .classed("intermediate", true);
+
+        var isIntermediateNode = function(d) {
+          var src = d.source.index;
+          var dst = d.target.index;
+          for (var i = 0; i < shortest.edges.length; ++i) {
+            var edge = shortest.edges[i];
+            if ((edge.src === src && edge.dst === dst) || (edge.dst === src && edge.src === dst)) {
+              return true;
+            }
+          }
+          return false;
+        };
+        svg.selectAll(".link-text").filter(isIntermediateNode).classed("active", true);
+        svg.selectAll(".link-line").filter(isIntermediateNode).classed("active", true);
+        return;
+      }
+
+      var node = svg.selectAll(".node");
+      node.filter(function(d) { return d.name === algorithm.JT }).classed("current", true);
+      node.filter(function(d) { return algorithm.neighbors && algorithm.neighbors.indexOf(d.name) != -1 })
+        .classed("B", "true");
+
+      var isCurrentEdge = function(d) {
+        var src = d.source.index;
+        var dst = d.target.index;
+        return (src === algorithm.JT && dst === algorithm.R) ||
+               (dst === algorithm.JT && src === algorithm.R);
+      };
+
+      console.debug(algorithm);
+
+      svg.selectAll(".link-text").filter(isCurrentEdge).classed("active", true);
+      svg.selectAll(".link-line").filter(isCurrentEdge).classed("active", true);
+      svg.selectAll(".node-text")
+        .text(function(d) {
+          var dist = algorithm.dist[d.name];
+          if (dist === Number.POSITIVE_INFINITY) {
+            dist = "\u221e";
+          }
+          return d.name + ":" + dist;
+        });
+    }
+
+    function graph2json(g) {
+      // Return a graph in JSON notation as shown in http://bl.ocks.org/mbostock/4062045
+      var result = {nodes: [], links: []}
+      for (var i = 0; i < g.length; ++i) {
+        var node = {"name": i};
+        result.nodes.push(node);
+        for (var j = i+1; j < g.length; ++j) {
+          if (g[i][j] != Number.POSITIVE_INFINITY) {
+            var edge = {"source": i, "target": j, "value": g[i][j]};
+            result.links.push(edge);
+          }
+        }
+      }
+      return result;
+    }
+
+    function drawGraph(graph) {
+      graph = graph2json(graph);
+      var force = d3.layout.force()
+          .charge(-400)
+          .linkDistance(100)
+          .size([width, height])
+          .nodes(graph.nodes)
+          .links(graph.links);
+
+      var link = svg.selectAll(".link-line")
+          .data(graph.links)
+          .enter();
+      var linkLines = link.append("line")
+          .attr("class", "link-line");
+      var linkText = link.append("text")
+          .attr("class", "link-text")
+          .attr("text-anchor", "middle")
+          .text(function(d) { return d.value; });
+
+      var node = svg.selectAll(".node")
+          .data(graph.nodes)
+          .enter()
+          .append("g");
+
+      node
+          .append("circle")
+          .attr("class", function(d) {
+              cls = "node";
+              if (d.name === srcNode) cls += " source";
+              else if (d.name === dstNode) cls += " destination";
+              return cls;
+          })
+          .attr("r", 25);
+      node
+          .append("text")
+          .attr("class", "node-text")
+          .attr("text-anchor", "middle")
+          .text(function(d) {
+            var dist = d.name === algorithm.P ? "0" : "\u221e";
+              return d.name + ":" + dist;
+          });
+      node.call(force.drag);
+
+      force.on("tick", function() {
+        linkLines.attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
+        linkText.attr("x", function(d) { return (d.source.x+d.target.x)/2; });
+        linkText.attr("y", function(d) { return (d.source.y+d.target.y)/2; });
+        node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+      });
+
+    force.start();
+    }
+
+    function createGraph() {
+      var numNodes = 20;
+      // Nodo inicio elegido aleatoriamente
+      srcNode = Math.floor(Math.random()*numNodes);
+      dstNode = srcNode;
+      do {
+        // Nodo objetivo elegido aleatoriamente
+        dstNode = Math.floor(Math.random()*numNodes);
+        // Validamos que el nodo inicio no sea el nodo objetivo
+      } while (dstNode === srcNode);
+
+      var graph = createRandomGraph(numNodes, 0.9, 20);
+      algorithm = new Algorithm(graph, srcNode, dstNode);
+      svg.selectAll("*").remove();
+      drawGraph(graph);
+    }
+
+    createGraph();
+
+    $("#btnStep").click(step);
+    $("#btnCreate").click(createGraph);
+    $("#btnGraphExample").click(function() {
+    });
+  </script>
 </body>
 </html>

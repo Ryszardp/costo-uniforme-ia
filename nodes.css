@@ -1,0 +1,47 @@
+svg {
+    border: 1px solid black;
+}
+
+.node {
+    stroke: black;
+    stroke-width: 2px;
+    fill: white;
+}
+
+.source {
+    stroke: green;
+}
+
+.destination {
+    stroke: #FF8C00
+}
+
+.A {
+    fill: #FFD700;
+}
+
+.B {
+    fill: #87CEEB;
+}
+
+.current {
+    stroke: red;
+}
+
+.intermediate {
+    fill: 	#90EE90;
+}
+
+.link-line {
+    stroke: black;
+    stroke-opacity: .6;
+}
+
+.link-text {
+    stroke: black;
+    stroke-opacity: 1.0;
+}
+
+.active {
+    stroke: red;
+}

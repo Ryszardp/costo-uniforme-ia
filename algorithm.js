@@ -5,6 +5,7 @@ function Algorithm(G, P, Q) {
     this.dist = [];
     this.dist[P] = 0;
     this.previous = [];
+
     this.A = {}
     this.B = new MinHeap();
 
@@ -28,7 +29,6 @@ Algorithm.prototype = {
         if (this.complete) {
             return true;
         }
-
         if (this.JT === undefined) {
             if (this.B.size() === 0 || this.B.peekMin().key === Number.POSITIVE_INFINITY || this.B.peekMin().value === this.Q) {
                 this.complete = true;
@@ -52,8 +52,6 @@ Algorithm.prototype = {
             }
             return false;
         }
-
-
         if (this.currentNeighbor === undefined) {
             this.currentNeighbor = 0;
         } else {
@@ -83,10 +81,7 @@ Algorithm.prototype = {
             nodes.push(tmpNode);
             while (true) {
                 var prevNode = this.previous[tmpNode];
-                edges.push({
-                    src: tmpNode,
-                    dst: prevNode
-                });
+                edges.push({src: tmpNode, dst: prevNode});
 
                 tmpNode = prevNode;
                 nodes.push(prevNode);
@@ -95,10 +90,6 @@ Algorithm.prototype = {
                 }
             }
         }
-        return {
-            edges: edges,
-            nodes: nodes,
-            distance: this.dist[this.Q]
-        }
+        return {edges: edges, nodes: nodes, distance: this.dist[this.Q]}
     }
 };

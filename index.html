@@ -35,7 +35,6 @@
 
     function step() {
       var result = algorithm.step();
-      //console.debug(result);
 
       svg.selectAll(".node.current").classed("current", false);
       svg.selectAll(".link-text.active").classed("active", false);
@@ -80,7 +79,6 @@
                (dst === algorithm.JT && src === algorithm.R);
       };
 
-      console.debug(algorithm);
 
       svg.selectAll(".link-text").filter(isCurrentEdge).classed("active", true);
       svg.selectAll(".link-line").filter(isCurrentEdge).classed("active", true);

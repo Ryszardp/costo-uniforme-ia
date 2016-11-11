@@ -35,8 +35,8 @@ function createGraphExample () {
 
 function createRandomGraph (numNodes, edgeProbability, maxWeight) {
   var g = []
-  for (var i = 0; i < numNodes; ++i) {
-    g[i] = []
+  for (var a = 0; a < numNodes; ++a) {
+    g[a] = []
   }
   for (var i = 0; i < numNodes; ++i) {
     for (var j = i + 1; j < numNodes; ++j) {
